@@ -1,0 +1,14 @@
+# Supabase
+supabase/.temp/
+supabase/.branches/
+.env
+.env.local
+
+# VS Code / OS
+.vscode/settings.json
+.DS_Store
+Thumbs.db
+
+# Логи / кэши
+node_modules/
+*.log

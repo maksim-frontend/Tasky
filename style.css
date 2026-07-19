@@ -1,0 +1,1236 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+:root {
+    --bg-body: #f4f3f1;
+    --bg-day: #fff;
+    --bg-button: #6c63ff;
+    --active-day: #2b2c30;
+    --muted: #888;
+    --divider-line: #dedbd6;
+    --danger: #f3370c;
+}
+
+.hidden {
+    display: none !important;
+}
+
+body {
+    width: 100vw;
+    height: 100dvh;
+    padding-top: 60px;
+    background-color: var(--bg-body);
+
+    display: flex;
+    justify-content: center;
+    align-items: start;
+
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+.container {
+    width: 100%;
+    max-width: 800px;
+    height: max-content;
+    min-height: 60%;
+}
+
+/* ---------- Экран входа / регистрации ---------- */
+
+.auth-screen {
+    width: 100vw;
+    height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--bg-body);
+    padding: 20px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+.auth-box {
+    width: 100%;
+    max-width: 380px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.auth-title {
+    font-size: 28px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.auth-tabs {
+    display: flex;
+    background-color: #eae7e2;
+    border-radius: 999px;
+    padding: 4px;
+}
+
+.auth-tab {
+    flex: 1;
+    border: none;
+    background: none;
+    padding: 10px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    transition: 0.15s;
+}
+
+.auth-tab.active {
+    background-color: var(--bg-day);
+    color: var(--active-day);
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.auth-form input {
+    padding: 12px 18px;
+    width: 100%;
+    border: 1px solid #000;
+    border-radius: 30px;
+    font-size: 15px;
+    outline: none;
+    font-family: inherit;
+}
+
+.auth-error {
+    font-size: 13px;
+    color: var(--danger);
+    min-height: 16px;
+}
+
+.auth-submit {
+    padding: 14px;
+    width: 100%;
+    border: none;
+    border-radius: 30px;
+    background-color: var(--bg-button);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.auth-submit:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.auth-submit:hover:not(:disabled) {
+    opacity: 0.9;
+}
+
+.email-sent {
+    width: 100%;
+    max-width: 380px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    text-align: center;
+}
+
+.email-sent-icon {
+    width: 90px;
+    height: 90px;
+    border-radius: 999px;
+    background-color: #f4dcc6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    color: var(--bg-button);
+    animation: bounceIcon 1.4s ease-in-out infinite;
+}
+
+@keyframes bounceIcon {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+.email-sent h2 {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.email-sent p {
+    font-size: 14px;
+    color: var(--muted);
+}
+
+/* ---------- Аватар и выход ---------- */
+
+.hidden-file-input {
+    display: none;
+}
+
+.logout-button {
+    align-self: flex-start;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 12px;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+}
+
+.logout-button:hover {
+    color: var(--danger);
+}
+
+.header {
+    width: 100%;
+    padding: 10px 20px;
+
+    display: flex;
+    justify-content: space-between;
+}
+
+
+
+.right {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.right h1 {
+    font-size: clamp(16px, 4vw, 24px);
+}
+
+.right .date-info {
+    font-size: clamp(8px, 2vw, 14px);
+    display: flex;
+    align-items: center;
+
+    gap: 10px;
+}
+
+.today-button.active {
+    border: none;
+    border-radius: 999px;
+    padding: 5px 12px;
+    font-size: clamp(10px, 2vw, 14px);
+    cursor: pointer;
+    background-color: var(--active-day);
+    color: var(--bg-body);
+    transition: 0.2s;
+    display: inline-block;
+}
+
+.fa-arrow-left {
+    margin-right: 5px;
+}
+
+.today-button.hidden {
+    display: none;
+}
+
+.left {
+    min-width: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    cursor: pointer;
+}
+
+.photo {
+    width: 70px;
+    height: 70px;
+    border-radius: 999px;
+    position: absolute;
+    object-fit: cover;
+    background: #ddd;
+}
+
+.fake-photo {
+    width: 72px;
+    height: 72px;
+    border-radius: 999px;
+    border: 1px solid #000;
+    background-image: url(images/1.jpg);
+    background-position: center;
+    background-size: 120%;
+    position: absolute;
+}
+
+.main {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 20px;
+}
+
+.calendar-wrapper {
+    width: 100%;
+    max-width: 600px;
+}
+
+/* Заголовок текущего месяца над лентой */
+.month-row {
+    margin: 14px 10px 2px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.month-label {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--active-day);
+    transition: opacity 0.15s ease;
+    user-select: none;
+}
+
+.month-label.is-changing {
+    opacity: 0;
+}
+
+.scroll-container {
+    overflow-x: auto;
+    scrollbar-width: none;
+    scroll-snap-type: x mandatory;
+}
+
+.scroll-container::-webkit-scrollbar {
+    display: none;
+}
+
+.calendar {
+    width: max-content;
+    margin: 10px;
+    display: flex;
+    gap: 10px;
+}
+
+.cells {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    flex-shrink: 0;
+    scroll-snap-align: start;
+    cursor: pointer;
+}
+
+/* Разделитель на стыке месяцев */
+.month-divider {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    flex-shrink: 0;
+    width: 36px;
+    scroll-snap-align: none;
+    user-select: none;
+}
+
+.month-divider .month-abbr {
+    font-size: 12px;
+    line-height: normal;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--active-day);
+    white-space: nowrap;
+}
+
+.month-divider .divider-line {
+    width: 1px;
+    height: 50px;
+    background-color: var(--divider-line);
+}
+
+.days {
+    width: 50px;
+    height: 50px;
+    border-radius: 999px;
+    background-color: var(--bg-day);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    transition: 0.15s;
+}
+
+.days.active {
+    background-color: var(--active-day);
+    color: #fff;
+}
+
+.weekday.active {
+    color: var(--active-day);
+    font-weight: 700;
+}
+
+.weekday {
+    font-size: 12px;
+    color: var(--muted);
+    text-transform: uppercase;
+}
+
+/* ---------- Список задач ---------- */
+
+.tasks-list {
+    margin-top: 20px;
+
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.tasks-list .title {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.tasks-list .title p {
+    font-size: clamp(14px, 2vw, 18px);
+    font-weight: 700;
+}
+
+.title-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.see-all,
+.exit-list {
+    background: none;
+    border: none;
+    font-size: clamp(13px, 2vw, 16px);
+    color: var(--bg-button);
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+}
+
+.see-all.hidden,
+.exit-list.hidden {
+    display: none;
+}
+
+.list-date-label {
+    margin-top: 6px;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.list-date-label.hidden {
+    display: none;
+}
+
+.tasks {
+    margin-top: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-bottom: 110px;
+}
+
+.tasks-empty {
+    margin-top: 40px;
+    text-align: center;
+    font-size: 14px;
+    color: var(--muted);
+}
+
+.task {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background-color: var(--bg-day);
+    border-radius: 18px;
+    padding: 14px 16px;
+}
+
+.task-check {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+    cursor: pointer;
+}
+
+.task-check input[type="checkbox"] {
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.task-check .checkmark {
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    border: 2px solid #ddd9d3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.15s;
+}
+
+.task-check input:checked+.checkmark {
+    background-color: var(--bg-button);
+    border-color: var(--bg-button);
+}
+
+.task-check input:checked+.checkmark::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background-color: #fff;
+}
+
+.task-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.task-name {
+    font-size: 15px;
+    font-weight: 600;
+    word-break: break-word;
+}
+
+.task-time {
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.task-desc {
+    font-size: 13px;
+    color: #7a7a7a;
+    word-break: break-word;
+}
+
+.task.done .task-name {
+    text-decoration: line-through;
+    color: #adadad;
+}
+
+.task.done .task-desc {
+    text-decoration: line-through;
+    color: #c6c6c6;
+}
+
+.task-delete {
+    background: none;
+    border: none;
+    color: var(--danger);
+    font-size: 15px;
+    cursor: pointer;
+    padding: 4px;
+    flex-shrink: 0;
+}
+
+.task-delete:hover {
+    opacity: 0.75;
+}
+
+.add-task {
+    width: 60px;
+    height: 60px;
+    border-radius: 99px;
+    background-color: var(--bg-button);
+    color: var(--bg-body);
+    border: none;
+    cursor: pointer;
+
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 20;
+}
+
+.fa-plus {
+    font-size: clamp(18px, 2vw, 23px);
+    font-weight: 700;
+}
+
+/* ---------- Уведомления ---------- */
+
+.alerts {
+    position: fixed;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 600px;
+    padding: 0 20px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+
+    pointer-events: none;
+    z-index: 40;
+}
+
+.alert {
+    background-color: var(--active-day);
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 999px;
+    font-size: 13px;
+    text-align: center;
+    max-width: 90%;
+
+    opacity: 0;
+    transform: translateY(-8px);
+    transition: 0.2s;
+}
+
+.alert.shown {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ---------- Режим "See all" ---------- */
+
+.container.list-mode {
+    display: flex;
+    flex-direction: column;
+    height: calc(100dvh - 60px);
+}
+
+.container.list-mode .main {
+    flex: 1;
+    min-height: 0;
+}
+
+.container.list-mode .calendar-wrapper {
+    display: none;
+}
+
+.container.list-mode .tasks-list {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* ---------- Модальное окно ---------- */
+
+.modal-task.shown {
+    width: 100vw;
+    height: 100dvh;
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    background-color: var(--bg-body);
+    z-index: 50;
+}
+
+.modal-task.hidden {
+    display: none;
+}
+
+.modal-close-tasks.shown {
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--bg-day);
+    background-color: var(--active-day);
+    color: var(--bg-day);
+    border-radius: 999px;
+    cursor: pointer;
+
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 51;
+}
+
+.modal-close-tasks.hidden {
+    display: none;
+}
+
+.modal-share.shown {
+    width: 100vw;
+    height: 100dvh;
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    background-color: var(--bg-body);
+    z-index: 50;
+}
+
+.modal-share.hidden {
+    display: none;
+}
+
+.share-task-name {
+    font-size: 14px;
+    color: var(--muted);
+    text-align: center;
+    margin-top: -10px;
+}
+
+.share-collaborators {
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.collaborator-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: var(--bg-day);
+    border-radius: 14px;
+    padding: 10px 14px;
+}
+
+.collaborator-name {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.collaborator-remove {
+    background: none;
+    border: none;
+    color: var(--danger);
+    cursor: pointer;
+    padding: 4px;
+    font-size: 14px;
+}
+
+.collaborator-remove:hover {
+    opacity: 0.75;
+}
+
+.share-empty,
+.share-loading {
+    font-size: 13px;
+    color: var(--muted);
+    text-align: center;
+}
+
+.share-invite-row {
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    gap: 10px;
+}
+
+.share-invite-row input {
+    flex: 1;
+    padding: 10px 20px;
+    outline: none;
+    border: 1px solid #000;
+    border-radius: 30px;
+    font-size: 15px;
+    min-width: 0;
+}
+
+.share-invite-row .modal-save-task {
+    width: auto;
+    flex-shrink: 0;
+    padding: 10px 20px;
+}
+
+.task-share {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 15px;
+    cursor: pointer;
+    padding: 4px;
+    flex-shrink: 0;
+}
+
+.task-share:hover {
+    color: var(--active-day);
+}
+
+.task-shared-label {
+    font-size: 11px;
+    color: var(--bg-button);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.fa-times {
+    font-size: clamp(18px, 2vw, 23px);
+    font-weight: 700;
+}
+
+.modal-container {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    padding: 20px;
+    margin-top: 50px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.modal-task-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: env(safe-area-inset-top, 44px);
+    background-color: rgba(244 243 241 / 0.7);
+    backdrop-filter: blur(12px);
+    z-index: 52;
+    pointer-events: none;
+}
+
+.modal-container input[type="text"] {
+    padding: 10px 20px;
+    width: 100%;
+    max-width: 600px;
+    outline: none;
+    border: 1px solid #000;
+    border-radius: 30px;
+    font-size: 16px;
+}
+
+.modal-container textarea {
+    padding: 20px 20px;
+    min-height: 120px;
+    width: 100%;
+    max-width: 600px;
+    outline: none;
+    border: 1px solid #000;
+    border-radius: 30px;
+    font-size: 16px;
+    font-family: inherit;
+    resize: vertical;
+}
+
+.date-picker {
+    width: 100%;
+    max-width: 600px;
+    border: 1px solid #eae7e2;
+    border-radius: 20px;
+    padding: 16px;
+}
+
+.picker-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.picker-title {
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.picker-nav {
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    border: none;
+    background-color: #f1efec;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.picker-nav:hover {
+    background-color: #e6e3de;
+}
+
+.picker-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+
+.picker-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
+
+.picker-grid span {
+    aspect-ratio: 1;
+}
+
+.picker-day {
+    aspect-ratio: 1;
+    border: none;
+    background: none;
+    border-radius: 999px;
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.picker-day:hover {
+    background-color: #f1efec;
+}
+
+.picker-day.today {
+    font-weight: 700;
+    color: var(--bg-button);
+}
+
+.picker-day.selected {
+    background-color: var(--active-day);
+    color: #fff;
+    font-weight: 700;
+}
+
+.icon-picker {
+    width: 100%;
+    max-width: 600px;
+}
+
+.icon-picker-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 10px;
+}
+
+.icon-grid {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 8px 4px;
+    scrollbar-width: none;
+    scroll-snap-type: x mandatory;
+}
+
+.icon-grid::-webkit-scrollbar {
+    display: none;
+}
+
+.icon-option {
+    width: 60px;
+    height: 60px;
+    flex-shrink: 0;
+    scroll-snap-align: start;
+    border: 3px solid transparent;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: #fff;
+    cursor: pointer;
+    transition: 0.15s;
+}
+
+.icon-option.selected {
+    border-color: var(--active-day); 
+}
+.icon-option i {
+    pointer-events: none;
+}
+
+/* Цветной квадрат-иконка у задачи в списке */
+.task-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.modal-container input[type="time"] {
+    padding: 10px 20px;
+    outline: none;
+    border: 1px solid #000;
+    border-radius: 30px;
+    font-size: 16px;
+
+    min-width: 0;
+    width: 90%;
+    max-width: 90%;
+}
+
+.modal-save-task {
+    width: 100%;
+    max-width: 600px;
+    padding: 14px;
+    border-radius: 30px;
+    border: none;
+    background-color: var(--bg-button);
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.modal-save-task:hover {
+    opacity: 0.9;
+}
+
+@media (max-width: 640px) {
+    body {
+        padding-top: 30px;
+    }
+
+    .header {
+        padding: 10px 16px;
+    }
+
+    .right h1 {
+        font-size: 20px;
+    }
+
+    .left {
+        min-width: 60px;
+    }
+
+    .photo {
+        width: 50px;
+        height: 50px;
+    }
+
+    .fake-photo {
+        width: 52px;
+        height: 52px;
+    }
+
+    .main {
+        padding: 0 16px;
+    }
+
+    .scroll-container {
+        width: 100%;
+    }
+
+    .calendar {
+        margin: 10px 0;
+        gap: 8px;
+    }
+
+    .days {
+        width: 42px;
+        height: 42px;
+        font-size: 14px;
+    }
+
+    .weekday {
+        font-size: 10px;
+    }
+
+    .month-divider {
+        width: 28px;
+    }
+
+    .month-label {
+        font-size: 12px;
+    }
+
+    .container.list-mode {
+        height: calc(100dvh - 30px);
+    }
+
+    /* ---- Модалка создания задачи ---- */
+
+    .modal-container {
+        gap: 14px;
+        padding: 16px;
+        margin-top: 40px;
+    }
+
+    .modal-container input[type="text"],
+    .modal-container input[type="time"],
+    .modal-container textarea,
+    .date-picker,
+    .icon-picker {
+        max-width: 100%;
+    }
+
+    .modal-container textarea {
+        min-height: 90px;
+    }
+
+    .share-invite-row {
+        flex-direction: column;
+        max-width: 100%;
+    }
+
+    .share-invite-row .modal-save-task {
+        width: 100%;
+    }
+
+    .date-picker {
+        padding: 12px;
+    }
+
+    .picker-nav {
+        width: 28px;
+        height: 28px;
+    }
+
+    .picker-title {
+        font-size: 13px;
+    }
+
+    .picker-weekdays {
+        font-size: 10px;
+    }
+
+    .picker-day {
+        font-size: 12px;
+    }
+
+    .icon-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+    }
+
+    .icon-option {
+        font-size: 16px;
+        border-radius: 12px;
+    }
+
+    .modal-save-task {
+        max-width: 100%;
+        font-size: 15px;
+    }
+
+    .task-time {
+        width: 100px;
+    }
+}
+
+@media (max-width: 360px) {
+    .days {
+        width: 38px;
+        height: 38px;
+    }
+
+    .calendar {
+        gap: 6px;
+    }
+
+    .picker-grid {
+        gap: 3px;
+    }
+
+    .icon-grid {
+        gap: 6px;
+    }
+}
+
+.celebrate-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.celebrate-badge {
+    width: 96px;
+    height: 96px;
+    border-radius: 999px;
+    background-color: #27b98c;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 16px 40px rgba(39, 185, 140, 0.4);
+    transform: scale(0);
+    animation: celebratePop 0.7s cubic-bezier(.34, 1.56, .64, 1) forwards;
+}
+
+.celebrate-badge svg {
+    width: 44px;
+    height: 44px;
+}
+
+@keyframes celebratePop {
+    0%   { transform: scale(0) rotate(-20deg); opacity: 0; }
+    55%  { transform: scale(1.15) rotate(6deg); opacity: 1; }
+    75%  { transform: scale(0.95) rotate(-2deg); }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+.confetti-dot {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 3px;
+    top: 50%;
+    left: 50%;
+    opacity: 0;
+    animation: confettiFly 0.9s ease-out forwards;
+}
+
+@keyframes confettiFly {
+    0%   { opacity: 1; transform: translate(-50%, -50%) translate(0, 0) rotate(0deg) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(0.4); }
+}

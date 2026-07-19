@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>To-do</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+</head>
+
+<body>
+    <div class="auth-screen" id="authScreen">
+        <div class="auth-box">
+            <h1 class="auth-title">To-do</h1>
+
+            <div class="auth-tabs">
+                <button type="button" class="auth-tab active" id="tabLogin">Вход</button>
+                <button type="button" class="auth-tab" id="tabRegister">Регистрация</button>
+            </div>
+
+            <form class="auth-form" id="loginForm">
+                <input type="email" id="loginEmail" placeholder="Почта" autocomplete="email">
+                <input type="password" id="loginPassword" placeholder="Пароль" autocomplete="current-password">
+                <p class="auth-error" id="loginError"></p>
+                <button type="submit" class="auth-submit">Войти</button>
+            </form>
+
+            <form class="auth-form hidden" id="registerForm">
+                <input type="text" id="registerName" placeholder="Имя" autocomplete="name">
+                <input type="email" id="registerEmail" placeholder="Почта" autocomplete="email">
+                <input type="password" id="registerPassword" placeholder="Пароль" autocomplete="new-password">
+                <input type="password" id="registerConfirm" placeholder="Повторите пароль" autocomplete="new-password">
+                <p class="auth-error" id="registerError"></p>
+                <button type="submit" class="auth-submit">Зарегистрироваться</button>
+            </form>
+        </div>
+
+        <div class="email-sent hidden" id="emailSentScreen">
+            <div class="email-sent-icon">
+                <i class="fa fa-envelope" aria-hidden="true"></i>
+            </div>
+            <h2>Отправили письмо на почту</h2>
+            <p>Перейдите по ссылке в письме, чтобы подтвердить регистрацию, затем войдите по почте и паролю</p>
+            <button type="button" class="auth-submit" id="emailSentClose">Закрыть</button>
+        </div>
+    </div>
+
+    <div class="container hidden" id="container">
+        <header class="header">
+            <div class="right">
+                <h1 id="greetingName"></h1>
+                <button type="button" class="logout-button" id="logoutButton">Выйти</button>
+            </div>
+
+            <div class="left" id="avatarUpload">
+                <img class="photo" id="profilePhoto"
+                    src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='70' height='70' viewBox='0 0 70 70'%3E%3Ccircle cx='35' cy='35' r='35' fill='%23d0d0d0'/%3E%3Ccircle cx='35' cy='28' r='12' fill='%23b0b0b0'/%3E%3Cpath d='M12 55 Q35 42 58 55' fill='%23b0b0b0'/%3E%3C/svg%3E"
+                    alt="photo" />
+                <div class="fake-photo"></div>
+                <input type="file" accept="image/*" id="avatarInput" class="hidden-file-input">
+            </div>
+        </header>
+
+        <main class="main">
+            <div class="calendar-wrapper">
+                <div class="month-row">
+                    <button class="today-button hidden" id="todayButton">
+                        <i class="fa fa-arrow-left" aria-hidden="true"></i>Today
+                    </button>
+                    <span class="month-label" id="monthLabel" aria-live="polite"></span>
+                </div>
+                <div class="scroll-container" id="scrollContainer">
+                    <div class="calendar" id="calendar"></div>
+                </div>
+            </div>
+
+            <div class="alerts" id="alerts"></div>
+
+            <div class="tasks-list" id="tasksList">
+                <div class="title">
+                    <p>Tasks for the day</p>
+                    <div class="title-actions">
+                        <button type="button" class="see-all" id="seeAllButton">See all</button>
+                        <button type="button" class="exit-list hidden" id="exitListButton">
+                            <i class="fa fa-arrow-left" aria-hidden="true"></i>Exit
+                        </button>
+                    </div>
+                </div>
+
+                <p class="list-date-label hidden" id="listDateLabel"></p>
+
+                <div class="tasks" id="tasksContainer"></div>
+
+                <button class="add-task" id="addTaskButton">
+                    <i class="fa fa-plus" aria-hidden="true"></i>
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal-task hidden">
+        <div class="modal-task-header"></div>
+        <button class="modal-close-tasks hidden">
+            <i class="fa fa-times" aria-hidden="true"></i>
+        </button>
+
+        <div class="modal-container">
+            <h1>New Task</h1>
+            <input type="text" id="taskName" placeholder="Name Tasks">
+            <textarea name="text-tasks" id="textTasks" placeholder="Details (optional)"></textarea>
+
+            <div class="date-picker" id="datePicker">
+                <div class="picker-header">
+                    <button type="button" class="picker-nav" id="pickerPrev">
+                        <i class="fa fa-chevron-left" aria-hidden="true"></i>
+                    </button>
+                    <p class="picker-title" id="pickerTitle"></p>
+                    <button type="button" class="picker-nav" id="pickerNext">
+                        <i class="fa fa-chevron-right" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <div class="picker-weekdays">
+                    <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+                </div>
+                <div class="picker-grid" id="pickerGrid"></div>
+            </div>
+
+            <div class="icon-picker">
+                <p class="icon-picker-label">Choose icon</p>
+                <div class="icon-grid" id="iconGrid"></div>
+            </div>
+
+            <input type="text" id="taskTime" placeholder="Time" onfocus="this.type='time'"
+                onblur="if(!this.value)this.type='text'">
+
+            <button type="button" class="modal-save-task" id="saveTaskButton">Add task</button>
+        </div>
+    </div>
+
+    <div class="modal-share hidden" id="modalShare">
+        <div class="modal-task-header"></div>
+        <button class="modal-close-tasks hidden" id="closeShareModal">
+            <i class="fa fa-times" aria-hidden="true"></i>
+        </button>
+
+        <div class="modal-container">
+            <h1>Share task</h1>
+            <p class="share-task-name" id="shareTaskName"></p>
+
+            <div class="share-collaborators" id="shareCollaborators"></div>
+
+            <div class="share-invite-row">
+                <input type="email" id="shareEmailInput" placeholder="Email пользователя">
+                <button type="button" class="modal-save-task" id="shareSubmitButton">Поделиться</button>
+            </div>
+
+            <p class="auth-error" id="shareError"></p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

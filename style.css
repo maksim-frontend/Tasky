@@ -7,6 +7,7 @@
 }
 
 :root {
+    color-scheme: light;
     --bg-body: #f4f3f1;
     --bg-day: #fff;
     --bg-button: #6c63ff;
@@ -14,6 +15,15 @@
     --muted: #888;
     --divider-line: #dedbd6;
     --danger: #f3370c;
+    --checkbox: #1dbe2b;
+
+    /* размеры аватара — меняются в медиазапросах */
+    --avatar-size: 70px;
+    --header-max: 800px;
+}
+
+html {
+    overflow-x: hidden;
 }
 
 .hidden {
@@ -21,11 +31,10 @@
 }
 
 body {
-    width: 100vw;
+    width: 100%;
     height: 100dvh;
-    padding-top: 60px;
+    padding-top: 10px;
     background-color: var(--bg-body);
-
     display: flex;
     justify-content: center;
     align-items: start;
@@ -35,7 +44,7 @@ body {
 
 .container {
     width: 100%;
-    max-width: 800px;
+    max-width: var(--header-max);
     height: max-content;
     min-height: 60%;
 }
@@ -43,7 +52,7 @@ body {
 /* ---------- Экран входа / регистрации ---------- */
 
 .auth-screen {
-    width: 100vw;
+    width: 100%;
     height: 100dvh;
     display: flex;
     align-items: center;
@@ -80,7 +89,7 @@ body {
     background: none;
     padding: 10px;
     border-radius: 999px;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 600;
     color: var(--muted);
     cursor: pointer;
@@ -103,7 +112,7 @@ body {
     width: 100%;
     border: 1px solid #000;
     border-radius: 30px;
-    font-size: 15px;
+    font-size: 16px;
     outline: none;
     font-family: inherit;
 }
@@ -121,7 +130,7 @@ body {
     border-radius: 30px;
     background-color: var(--bg-button);
     color: #fff;
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 600;
     cursor: pointer;
 }
@@ -176,7 +185,7 @@ body {
 }
 
 .email-sent p {
-    font-size: 14px;
+    font-size: 16px;
     color: var(--muted);
 }
 
@@ -202,16 +211,26 @@ body {
 }
 
 .header {
+    background-color: var(--bg-body);
     width: 100%;
+    max-width: var(--header-max);
     padding: 10px 20px;
+
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 30;
 
     display: flex;
     justify-content: space-between;
+    align-items: center;
+    gap: 16px;
 }
 
-
-
 .right {
+    flex: 1 1 auto;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -242,6 +261,8 @@ body {
 }
 
 .fa-arrow-left {
+    font-size: clamp(13px, 2vw, 17px);
+    font-weight: 700;
     margin-right: 5px;
 }
 
@@ -249,33 +270,28 @@ body {
     display: none;
 }
 
+/* ИСПРАВЛЕНО: фиксированный размер вместо min-width,
+   аватары привязаны через top/left, а не через "статическую позицию". */
+
 .left {
-    min-width: 100px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
     position: relative;
+    width: var(--avatar-size);
+    height: var(--avatar-size);
+    flex: 0 0 var(--avatar-size);
+    min-width: 0;
     cursor: pointer;
 }
 
 .photo {
-    width: 70px;
-    height: 70px;
-    border-radius: 999px;
     position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 999px;
     object-fit: cover;
-    background: #ddd;
-}
-
-.fake-photo {
-    width: 72px;
-    height: 72px;
-    border-radius: 999px;
     border: 1px solid #000;
-    background-image: url(images/1.jpg);
-    background-position: center;
-    background-size: 120%;
-    position: absolute;
+    background: #ddd;
 }
 
 .main {
@@ -284,6 +300,7 @@ body {
     flex-direction: column;
     align-items: center;
     padding: 0 20px;
+    margin-top: clamp(65px, 10vw, 100px);
 }
 
 .calendar-wrapper {
@@ -439,6 +456,13 @@ body {
     align-items: center;
 }
 
+.exit-list {
+    color: var(--bg-body);
+    background-color: var(--bg-button);
+    padding: 5px 10px;
+    border-radius: 15px;
+}
+
 .see-all.hidden,
 .exit-list.hidden {
     display: none;
@@ -465,7 +489,7 @@ body {
 .tasks-empty {
     margin-top: 40px;
     text-align: center;
-    font-size: 14px;
+    font-size: 16px;
     color: var(--muted);
 }
 
@@ -509,8 +533,8 @@ body {
 }
 
 .task-check input:checked+.checkmark {
-    background-color: var(--bg-button);
-    border-color: var(--bg-button);
+    background-color: var(--checkbox);
+    border-color: var(--checkbox);
 }
 
 .task-check input:checked+.checkmark::after {
@@ -656,7 +680,7 @@ body {
 /* ---------- Модальное окно ---------- */
 
 .modal-task.shown {
-    width: 100vw;
+    width: 100%;
     height: 100dvh;
     overflow-y: auto;
     overflow-x: hidden;
@@ -693,7 +717,7 @@ body {
 }
 
 .modal-share.shown {
-    width: 100vw;
+    width: 100%;
     height: 100dvh;
     overflow-y: auto;
     overflow-x: hidden;
@@ -711,7 +735,7 @@ body {
 }
 
 .share-task-name {
-    font-size: 14px;
+    font-size: 16px;
     color: var(--muted);
     text-align: center;
     margin-top: -10px;
@@ -735,7 +759,7 @@ body {
 }
 
 .collaborator-name {
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 600;
 }
 
@@ -745,7 +769,7 @@ body {
     color: var(--danger);
     cursor: pointer;
     padding: 4px;
-    font-size: 14px;
+    font-size: 16px;
 }
 
 .collaborator-remove:hover {
@@ -772,7 +796,7 @@ body {
     outline: none;
     border: 1px solid #000;
     border-radius: 30px;
-    font-size: 15px;
+    font-size: 16px;
     min-width: 0;
 }
 
@@ -872,7 +896,7 @@ body {
 }
 
 .picker-title {
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.04em;
@@ -985,8 +1009,9 @@ body {
 }
 
 .icon-option.selected {
-    border-color: var(--active-day); 
+    border-color: var(--active-day);
 }
+
 .icon-option i {
     pointer-events: none;
 }
@@ -1034,6 +1059,10 @@ body {
 }
 
 @media (max-width: 640px) {
+    :root {
+        --avatar-size: 52px;
+    }
+
     body {
         padding-top: 30px;
     }
@@ -1044,20 +1073,6 @@ body {
 
     .right h1 {
         font-size: 20px;
-    }
-
-    .left {
-        min-width: 60px;
-    }
-
-    .photo {
-        width: 50px;
-        height: 50px;
-    }
-
-    .fake-photo {
-        width: 52px;
-        height: 52px;
     }
 
     .main {
@@ -1076,7 +1091,7 @@ body {
     .days {
         width: 42px;
         height: 42px;
-        font-size: 14px;
+        font-size: 16px;
     }
 
     .weekday {
@@ -1213,10 +1228,24 @@ body {
 }
 
 @keyframes celebratePop {
-    0%   { transform: scale(0) rotate(-20deg); opacity: 0; }
-    55%  { transform: scale(1.15) rotate(6deg); opacity: 1; }
-    75%  { transform: scale(0.95) rotate(-2deg); }
-    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    0% {
+        transform: scale(0) rotate(-20deg);
+        opacity: 0;
+    }
+
+    55% {
+        transform: scale(1.15) rotate(6deg);
+        opacity: 1;
+    }
+
+    75% {
+        transform: scale(0.95) rotate(-2deg);
+    }
+
+    100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+    }
 }
 
 .confetti-dot {
@@ -1231,6 +1260,472 @@ body {
 }
 
 @keyframes confettiFly {
-    0%   { opacity: 1; transform: translate(-50%, -50%) translate(0, 0) rotate(0deg) scale(1); }
-    100% { opacity: 0; transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(0.4); }
+    0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) translate(0, 0) rotate(0deg) scale(1);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(0.4);
+    }
+}
+
+/* --- Имя (кликабельно) --- */
+.greeting-clickable {
+    cursor: pointer;
+    transition: 0.15s;
+}
+
+.greeting-clickable:hover {
+    opacity: 0.7;
+}
+
+/* --- Меню под именем --- */
+.user-menu {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    background: transparent;
+    display: flex;
+    align-items: flex-start;
+    padding: 80px 20px 0;
+}
+
+.user-menu-card {
+    background: var(--bg-day);
+    border-radius: 14px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+    min-width: 180px;
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+}
+
+.user-menu-item {
+    background: none;
+    border: none;
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 16px;
+    font-family: inherit;
+    color: var(--active-day);
+    cursor: pointer;
+    border-radius: 10px;
+}
+
+.user-menu-item:hover {
+    background-color: var(--bg-body);
+}
+
+.user-menu-danger {
+    color: var(--danger);
+}
+
+/* --- Подтверждение выхода --- */
+.confirm-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    background: rgba(0, 0, 0, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.confirm-card {
+    background: var(--bg-day);
+    border-radius: 18px;
+    padding: 22px;
+    max-width: 320px;
+    width: 100%;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
+}
+
+.confirm-title {
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+.confirm-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.confirm-cancel,
+.confirm-ok {
+    flex: 1;
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    font-family: inherit;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.confirm-cancel {
+    background: var(--bg-body);
+    color: var(--active-day);
+}
+
+.confirm-ok {
+    background: var(--danger);
+    color: #fff;
+}
+
+/* --- Кнопка Telegram --- */
+.telegram-connect-button {
+    background: none;
+    border: 1px solid var(--divider-line);
+    border-radius: 12px;
+    padding: 6px 12px;
+    font-family: inherit;
+    font-size: 12px;
+    color: var(--muted);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    align-self: flex-start;
+    transition: 0.15s;
+    white-space: nowrap;
+}
+
+.telegram-connect-button:hover {
+    background-color: var(--bg-day);
+}
+
+.telegram-connect-button.linked {
+    color: #229ED9;
+    border-color: #229ED9;
+}
+
+.notify-block {
+    width: 100%;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.notify-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    padding-left: 4px;
+}
+
+.notify-inputs {
+    display: flex;
+    gap: 10px;
+}
+
+.notify-field {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #fff;
+    border-radius: 12px;
+    padding: 10px 14px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    flex: 1;
+}
+
+.notify-field input {
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 16px;
+    color: var(--active-day);
+    -moz-appearance: textfield;
+}
+
+.notify-field input::-webkit-outer-spin-button,
+.notify-field input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.notify-field span {
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.settings-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 55;
+    background: var(--bg-body);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.settings-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px;
+    border-bottom: 1px solid var(--divider-line);
+}
+
+.settings-header h2 {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.settings-back {
+    background: none;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--active-day);
+}
+
+.settings-back:hover {
+    background: var(--bg-day);
+}
+
+.settings-content {
+    padding: 20px;
+    max-width: 500px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.settings-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 24px;
+}
+
+.settings-label {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--active-day);
+}
+
+.settings-select {
+    padding: 12px 14px;
+    border: 1px solid var(--divider-line);
+    border-radius: 12px;
+    background: #fff;
+    font-family: inherit;
+    font-size: 16px;
+    color: var(--active-day);
+    cursor: pointer;
+    outline: none;
+}
+
+.settings-select:focus {
+    border-color: var(--active-day);
+}
+
+.settings-hint {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+}
+
+.settings-input {
+    padding: 12px 14px;
+    border: 1px solid var(--divider-line);
+    border-radius: 12px;
+    background: #fff;
+    font-family: inherit;
+    font-size: 16px;
+    color: var(--active-day);
+    outline: none;
+    flex: 1;
+    min-width: 0;
+}
+
+.settings-input:focus {
+    border-color: var(--active-day);
+}
+
+.settings-name-row {
+    display: flex;
+    gap: 8px;
+}
+
+.settings-save-name {
+    padding: 12px 18px;
+    border: none;
+    border-radius: 12px;
+    background: var(--bg-button);
+    color: #fff;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.settings-save-name:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.settings-telegram-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    background: #fff;
+    border: 1px solid var(--divider-line);
+    border-radius: 12px;
+}
+
+.settings-telegram-status {
+    font-size: 16px;
+    color: var(--muted);
+}
+
+.settings-telegram-status.linked {
+    color: #229ED9;
+    font-weight: 600;
+}
+
+.settings-telegram-unlink {
+    background: none;
+    border: 1px solid var(--danger);
+    border-radius: 10px;
+    padding: 6px 12px;
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--danger);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.settings-telegram-unlink:hover {
+    background: var(--danger);
+    color: #fff;
+}
+
+/* Просроченная задача */
+.task.overdue .task-time {
+    color: var(--danger);
+    font-weight: 700;
+}
+
+.task.overdue .task-name {
+    text-decoration: line-through;
+    color: var(--danger);
+}
+
+.task.overdue .task-desc {
+    text-decoration: line-through;
+    color: var(--danger);
+    opacity: 0.7;
+}
+
+.task.overdue .task-check .checkmark {
+    border-color: var(--danger);
+    background-color: rgba(255, 68, 68, 0.1);
+}
+
+.settings-avatar-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 14px;
+    background: #fff;
+    border: 1px solid var(--divider-line);
+    border-radius: 12px;
+
+    display: flex;
+    justify-content: space-between;
+}
+
+.settings-avatar-preview {
+    width: 56px;
+    height: 56px;
+    border-radius: 999px;
+    object-fit: cover;
+    background: #ddd;
+    flex-shrink: 0;
+}
+
+.settings-avatar-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.settings-avatar-change,
+.settings-avatar-delete {
+    padding: 8px 14px;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 13px;
+    cursor: pointer;
+    border: 1px solid var(--divider-line);
+    background: none;
+    color: var(--active-day);
+}
+
+.settings-avatar-change:hover {
+    background: var(--bg-body);
+}
+
+.settings-avatar-delete {
+    border-color: var(--danger);
+    color: var(--danger);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.settings-avatar-delete:hover {
+    background: var(--danger);
+    color: #fff;
+}
+
+.settings-logout-section {
+    padding-top: 10px;
+}
+
+.settings-logout {
+    width: 100%;
+    padding: 14px;
+    border: 1px solid var(--danger);
+    border-radius: 12px;
+    background: none;
+    color: var(--danger);
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.4s;
+}
+
+.settings-logout:hover {
+    background: var(--danger);
+    color: #fff;
+}
+
+.settings-content {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
 }

@@ -4,8 +4,16 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>To-do</title>
+    <meta name="theme-color" content="#f4f3f1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="color-scheme" content="light">
+
+    <title>Tasky</title>
+    <link rel="icon" type="images/jpg" href="/images/favicon.jpg">
+    <link rel="apple-touch-icon" href="icon.png">
     <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 </head>
 
@@ -49,15 +57,15 @@
     <div class="container hidden" id="container">
         <header class="header">
             <div class="right">
-                <h1 id="greetingName"></h1>
-                <button type="button" class="logout-button" id="logoutButton">Выйти</button>
+                <h1 id="greetingName" class="greeting-clickable"></h1>
+                <button type="button" class="telegram-connect-button" id="telegramConnectButton">
+                    <i class="fa-brands fa-telegram" aria-hidden="true"></i>
+                    <span id="telegramButtonText">Подключить Telegram</span>
+                </button>
             </div>
 
             <div class="left" id="avatarUpload">
-                <img class="photo" id="profilePhoto"
-                    src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='70' height='70' viewBox='0 0 70 70'%3E%3Ccircle cx='35' cy='35' r='35' fill='%23d0d0d0'/%3E%3Ccircle cx='35' cy='28' r='12' fill='%23b0b0b0'/%3E%3Cpath d='M12 55 Q35 42 58 55' fill='%23b0b0b0'/%3E%3C/svg%3E"
-                    alt="photo" />
-                <div class="fake-photo"></div>
+                <img class="photo" id="profilePhoto" src="images/1.jpg" alt="photo" />
                 <input type="file" accept="image/*" id="avatarInput" class="hidden-file-input">
             </div>
         </header>
@@ -134,6 +142,20 @@
             <input type="text" id="taskTime" placeholder="Time" onfocus="this.type='time'"
                 onblur="if(!this.value)this.type='text'">
 
+            <div class="notify-block">
+                <p class="notify-label">Уведомить за</p>
+                <div class="notify-inputs">
+                    <div class="notify-field">
+                        <input type="number" id="notifyHours" min="0" max="72" placeholder="0">
+                        <span>ч</span>
+                    </div>
+                    <div class="notify-field">
+                        <input type="number" id="notifyMinutes" min="0" max="59" placeholder="0">
+                        <span>мин</span>
+                    </div>
+                </div>
+            </div>
+
             <button type="button" class="modal-save-task" id="saveTaskButton">Add task</button>
         </div>
     </div>
@@ -156,6 +178,83 @@
             </div>
 
             <p class="auth-error" id="shareError"></p>
+        </div>
+    </div>
+
+    <div class="confirm-modal hidden" id="confirmLogout">
+        <div class="confirm-card">
+            <p class="confirm-title">Точно хотите выйти?</p>
+            <div class="confirm-actions">
+                <button type="button" class="confirm-cancel" id="confirmLogoutCancel">Отмена</button>
+                <button type="button" class="confirm-ok" id="confirmLogoutOk">Выйти</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модалка настроек -->
+    <div class="settings-modal hidden" id="settingsModal">
+        <div class="settings-header">
+            <button type="button" class="settings-back" id="settingsBack">
+                <i class="fa fa-arrow-left" aria-hidden="true"></i>
+            </button>
+            <h2>Настройки</h2>
+        </div>
+
+        <div class="settings-content">
+            <div class="settings-section">
+                <p class="settings-label">Имя</p>
+                <div class="settings-name-row">
+                    <input type="text" id="settingsNameInput" class="settings-input" placeholder="Ваше имя">
+                    <button type="button" class="settings-save-name" id="settingsSaveName">Сохранить</button>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <p class="settings-label">Фото профиля</p>
+                <div class="settings-avatar-row">
+                    <img class="settings-avatar-preview" id="settingsAvatarPreview" alt="avatar">
+                    <div class="settings-avatar-actions">
+                        <button type="button" class="settings-avatar-change" id="settingsAvatarChange">Изменить</button>
+                        <button type="button" class="settings-avatar-delete hidden" id="settingsAvatarDelete">
+                            <i class="fa fa-trash" aria-hidden="true"></i> Удалить
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <p class="settings-label">Часовой пояс</p>
+                <select id="timezoneSelect" class="settings-select">
+                    <option value="Europe/Kaliningrad">Калининград (UTC+2)</option>
+                    <option value="Europe/Moscow">Москва (UTC+3)</option>
+                    <option value="Europe/Samara">Самара (UTC+4)</option>
+                    <option value="Asia/Yekaterinburg">Екатеринбург (UTC+5)</option>
+                    <option value="Asia/Omsk">Омск (UTC+6)</option>
+                    <option value="Asia/Krasnoyarsk">Красноярск (UTC+7)</option>
+                    <option value="Asia/Irkutsk">Иркутск (UTC+8)</option>
+                    <option value="Asia/Yakutsk">Якутск (UTC+9)</option>
+                    <option value="Asia/Vladivostok">Владивосток (UTC+10)</option>
+                    <option value="Asia/Magadan">Магадан (UTC+11)</option>
+                    <option value="Asia/Kamchatka">Камчатка (UTC+12)</option>
+                </select>
+                <p class="settings-hint">Используется для точного определения времени.</p>
+            </div>
+
+            <div class="settings-section">
+                <p class="settings-label">Telegram</p>
+                <div class="settings-telegram-row">
+                    <p class="settings-telegram-status" id="settingsTelegramStatus">Не подключён</p>
+                    <button type="button" class="settings-telegram-unlink hidden" id="settingsTelegramUnlink">
+                        <i class="fa fa-unlink" aria-hidden="true"></i> Отвязать
+                    </button>
+                </div>
+            </div>
+
+            <div class="settings-section settings-logout-section">
+                <button type="button" class="settings-logout" id="settingsLogoutButton">
+                    <i class="fa fa-sign-out" aria-hidden="true"></i> Выйти из аккаунта
+                </button>
+            </div>
         </div>
     </div>
 

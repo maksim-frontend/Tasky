@@ -34,7 +34,6 @@ const greetingName = document.querySelector('#greetingName');
 const profilePhoto = document.querySelector('#profilePhoto');
 const avatarUploadWrapper = document.querySelector('#avatarUpload');
 const avatarInput = document.querySelector('#avatarInput');
-const logoutButton = document.querySelector('#logoutButton');
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -154,10 +153,6 @@ loginForm.addEventListener('submit', async (event) => {
     }
 });
 
-logoutButton.addEventListener('click', async () => {
-    await supabaseClient.auth.signOut();
-});
-
 async function ensureProfile(user) {
     const { data: existing } = await supabaseClient
         .from('profiles')
@@ -227,7 +222,7 @@ avatarInput.addEventListener('change', async () => {
         .update({ avatar_url: avatarUrl })
         .eq('id', user.id);
 
-    profilePhoto.src = avatarUrl;
+    syncAvatarUI(avatarUrl);
     showAlert('Фото обновлено');
 });
 
@@ -240,12 +235,25 @@ async function initApp(session) {
     appInitialized = true;
     currentUserId = session.user.id;
 
+    const browserTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const { data: prof } = await supabaseClient
+        .from('profiles')
+        .select('timezone')
+        .eq('id', currentUserId)
+        .maybeSingle();
+
+    if (prof && !prof.timezone) {
+        await supabaseClient
+            .from('profiles')
+            .update({ timezone: browserTz })
+            .eq('id', currentUserId);
+    }
+
+    updateTelegramButtonState();
+
     authScreen.classList.add('hidden');
     appContainer.classList.remove('hidden');
 
-    // .container был скрыт (display:none) на момент первого построения
-    // ленты дней — clientWidth тогда был 0, и scroll-container "схлопнулся".
-    // Пересчитываем ширину теперь, когда контейнер реально видим.
     requestAnimationFrame(() => {
         fitWholeDays();
         updateMonthLabel();
@@ -256,9 +264,7 @@ async function initApp(session) {
     if (profile) {
         currentUserName = profile.name || '';
         greetingName.textContent = profile.name ? `Hello, ${profile.name}` : 'Hello';
-        if (profile.avatar_url) {
-            profilePhoto.src = profile.avatar_url;
-        }
+        syncAvatarUI(profile.avatar_url);
     }
 
     tasks = await loadTasksFromDB();
@@ -585,7 +591,8 @@ function mapRowToTask(row) {
         date: dateKey(new Date(`${row.date}T00:00:00`)),
         time: row.time ? row.time.slice(0, 5) : '',
         icon: row.icon || ICONS[0],
-        done: row.done
+        done: row.done,
+        notifyBefore: row.notify_before_minutes,   // ← добавь эту строку
     };
 }
 
@@ -638,11 +645,25 @@ function renderTasksForSelectedDate() {
     });
 }
 
+function isOverdue(task) {
+    if (task.done) return false;
+    if (!task.time) return false;
+
+    const [Y, M, D] = task.date.split('-').map(Number);
+    const [h, m] = task.time.split(':').map(Number);
+    const taskDateTime = new Date(Y, M, D, h, m);
+    return taskDateTime.getTime() < Date.now();
+}
+
 function createTaskRow(task) {
     const row = document.createElement('div');
     row.classList.add('task');
     if (task.done) row.classList.add('done');
     row.dataset.id = task.id;
+
+    if (isOverdue(task)) {
+        row.classList.add('overdue');
+    }
 
     const label = document.createElement('label');
     label.classList.add('task-check');
@@ -819,6 +840,8 @@ const pickerGrid = document.querySelector('#pickerGrid');
 const pickerPrev = document.querySelector('#pickerPrev');
 const pickerNext = document.querySelector('#pickerNext');
 const iconGrid = document.querySelector('#iconGrid');
+const notifyHoursInput = document.querySelector('#notifyHours');
+const notifyMinutesInput = document.querySelector('#notifyMinutes');
 
 let pickerViewDate = new Date(today);
 let pickerSelectedDate = new Date(today);
@@ -855,6 +878,8 @@ function openModal() {
     taskNameInput.value = '';
     taskTextInput.value = '';
     taskTimeInput.value = '';
+    notifyHoursInput.value = '';
+    notifyMinutesInput.value = '';
 
     renderPicker();
     renderIconPicker();
@@ -945,6 +970,10 @@ saveTaskButton.addEventListener('click', async () => {
 
     const { data: { user } } = await supabaseClient.auth.getUser();
 
+    const notifyH = parseInt(notifyHoursInput.value) || 0;
+    const notifyM = parseInt(notifyMinutesInput.value) || 0;
+    const notifyTotal = notifyH * 60 + notifyM;
+
     const { data, error } = await supabaseClient
         .from('tasks')
         .insert({
@@ -955,7 +984,8 @@ saveTaskButton.addEventListener('click', async () => {
             date: toISODate(pickerSelectedDate),
             time: taskTimeInput.value || null,
             icon: ICONS[selectedIconIndex],
-            done: false
+            done: false,
+            notify_before_minutes: notifyTotal > 0 ? notifyTotal : null,
         })
         .select()
         .single();
@@ -1220,3 +1250,241 @@ function unsubscribeRealtime() {
 /* ==================== Первичный рендер ==================== */
 
 renderTasksForSelectedDate();
+
+// ====================Меню==========================
+const settingsLogoutButton = document.querySelector('#settingsLogoutButton');
+
+// Клик по имени открывает настройки напрямую
+greetingName.addEventListener('click', () => {
+    openSettings();
+});
+
+settingsLogoutButton.addEventListener('click', () => {
+    confirmLogout.classList.remove('hidden');
+});
+/* ==================== Telegram ==================== */
+
+const TELEGRAM_BOT_USERNAME = 'Tasky_alert_bot';
+
+const telegramConnectButton = document.querySelector('#telegramConnectButton');
+const telegramButtonText = document.querySelector('#telegramButtonText');
+
+async function updateTelegramButtonState() {
+    if (!currentUserId) return;
+
+    const { data } = await supabaseClient
+        .from('telegram_links')
+        .select('chat_id')
+        .eq('user_id', currentUserId)
+        .maybeSingle();
+
+    if (data) {
+        telegramButtonText.innerHTML = 'Telegram <i class="fa fa-check" aria-hidden="true"></i>';
+        telegramConnectButton.classList.add('linked');
+    } else {
+        telegramButtonText.textContent = 'Подключить Telegram';
+        telegramConnectButton.classList.remove('linked');
+    }
+}
+
+telegramConnectButton.addEventListener('click', async () => {
+    if (telegramConnectButton.classList.contains('linked')) return;
+
+    const code = Math.random().toString(36).slice(2, 10);
+    const { error } = await supabaseClient
+        .from('telegram_link_codes')
+        .insert({ code, user_id: currentUserId });
+
+    if (error) {
+        showAlert('Не удалось создать код');
+        return;
+    }
+
+    window.open(`https://t.me/${TELEGRAM_BOT_USERNAME}?start=${code}`, '_blank');
+});
+
+/* ==================== Настройки ==================== */
+
+const settingsModal = document.querySelector('#settingsModal');
+const settingsBack = document.querySelector('#settingsBack');
+const timezoneSelect = document.querySelector('#timezoneSelect');
+
+async function openSettings() {
+    const { data: profile } = await supabaseClient
+        .from('profiles')
+        .select('name, timezone')
+        .eq('id', currentUserId)
+        .maybeSingle();
+
+    settingsNameInput.value = (profile && profile.name) || '';
+    timezoneSelect.value = (profile && profile.timezone) || 'Europe/Moscow';
+
+    // Статус телеграма
+    const { data: tg } = await supabaseClient
+        .from('telegram_links')
+        .select('chat_id')
+        .eq('user_id', currentUserId)
+        .maybeSingle();
+
+    if (tg) {
+        settingsTelegramStatus.textContent = 'Подключён';
+        settingsTelegramStatus.classList.add('linked');
+        settingsTelegramUnlink.classList.remove('hidden');
+    } else {
+        settingsTelegramStatus.textContent = 'Не подключён';
+        settingsTelegramStatus.classList.remove('linked');
+        settingsTelegramUnlink.classList.add('hidden');
+    }
+
+    settingsModal.classList.remove('hidden');
+}
+
+function closeSettings() {
+    settingsModal.classList.add('hidden');
+}
+
+const settingsNameInput = document.querySelector('#settingsNameInput');
+const settingsSaveName = document.querySelector('#settingsSaveName');
+const settingsTelegramStatus = document.querySelector('#settingsTelegramStatus');
+const settingsTelegramUnlink = document.querySelector('#settingsTelegramUnlink');
+
+/* --- Сохранение имени --- */
+
+settingsSaveName.addEventListener('click', async () => {
+    const newName = settingsNameInput.value.trim();
+
+    if (!newName) {
+        showAlert('Введите имя');
+        return;
+    }
+
+    settingsSaveName.disabled = true;
+
+    const { error } = await supabaseClient
+        .from('profiles')
+        .update({ name: newName })
+        .eq('id', currentUserId);
+
+    settingsSaveName.disabled = false;
+
+    if (error) {
+        showAlert('Не удалось сохранить имя');
+        return;
+    }
+
+    currentUserName = newName;
+    greetingName.textContent = `Hello, ${newName}`;
+    showAlert('Имя обновлено');
+});
+
+/* --- Отвязка Telegram --- */
+
+settingsTelegramUnlink.addEventListener('click', async () => {
+    const confirmed = confirm('Отвязать Telegram? Уведомления перестанут приходить.');
+    if (!confirmed) return;
+
+    const { error } = await supabaseClient
+        .from('telegram_links')
+        .delete()
+        .eq('user_id', currentUserId);
+
+    if (error) {
+        showAlert('Не удалось отвязать');
+        return;
+    }
+
+    settingsTelegramStatus.textContent = 'Не подключён';
+    settingsTelegramStatus.classList.remove('linked');
+    settingsTelegramUnlink.classList.add('hidden');
+    updateTelegramButtonState();
+    showAlert('Telegram отвязан');
+});
+
+settingsBack.addEventListener('click', closeSettings);
+
+timezoneSelect.addEventListener('change', async () => {
+    const tz = timezoneSelect.value;
+    const { error } = await supabaseClient
+        .from('profiles')
+        .update({ timezone: tz })
+        .eq('id', currentUserId);
+
+    if (error) {
+        showAlert('Не удалось сохранить пояс');
+        return;
+    }
+
+    showAlert('Часовой пояс сохранён');
+});
+
+setInterval(() => {
+    renderTasksForSelectedDate();
+}, 60 * 1000);
+
+const DEFAULT_AVATAR = 'images/1.jpg';
+
+const settingsAvatarPreview = document.querySelector('#settingsAvatarPreview');
+const settingsAvatarChange = document.querySelector('#settingsAvatarChange');
+const settingsAvatarDelete = document.querySelector('#settingsAvatarDelete');
+
+// Синхронизирует превью в настройках с текущим аватаром
+function syncAvatarUI(url) {
+    const src = url || DEFAULT_AVATAR;
+    profilePhoto.src = src;
+    settingsAvatarPreview.src = src;
+    settingsAvatarDelete.classList.toggle('hidden', !url);
+}
+
+settingsAvatarChange.addEventListener('click', () => {
+    avatarInput.click();
+});
+
+settingsAvatarDelete.addEventListener('click', async () => {
+    settingsAvatarDelete.disabled = true;
+
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if (!user) {
+        settingsAvatarDelete.disabled = false;
+        return;
+    }
+
+    await supabaseClient
+        .storage
+        .from('avatars')
+        .remove([
+            `${user.id}/avatar.jpg`,
+            `${user.id}/avatar.jpeg`,
+            `${user.id}/avatar.png`,
+            `${user.id}/avatar.webp`,
+        ]);
+
+    const { error } = await supabaseClient
+        .from('profiles')
+        .update({ avatar_url: null })
+        .eq('id', user.id);
+
+    settingsAvatarDelete.disabled = false;
+
+    if (error) {
+        showAlert('Не удалось удалить фото');
+        return;
+    }
+
+    syncAvatarUI(null);
+    showAlert('Фото удалено');
+});
+
+// Перерисовка раз в минуту: просроченные задачи и смена дня
+let lastRenderedDay = toISODate(new Date());
+
+setInterval(() => {
+    const today = toISODate(new Date());
+
+    if (today !== lastRenderedDay) {
+        lastRenderedDay = today;
+        buildCalendar();
+        selectDate(new Date());
+    }
+
+    renderTasksForSelectedDate();
+}, 60000);

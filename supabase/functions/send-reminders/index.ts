@@ -26,7 +26,11 @@ Deno.serve(async () => {
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chat_id: link.chat_id, text }),
+                body: JSON.stringify({ 
+                    chat_id: link.chat_id, 
+                    text,
+                    disable_notification: false 
+                }),
             }
         );
 

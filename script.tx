@@ -268,6 +268,7 @@ async function initApp(session) {
     }
 
     tasks = await loadTasksFromDB();
+    await loadShareCounts();
     renderTasksForSelectedDate();
 
     subscribeRealtime();
@@ -592,7 +593,7 @@ function mapRowToTask(row) {
         time: row.time ? row.time.slice(0, 5) : '',
         icon: row.icon || ICONS[0],
         done: row.done,
-        notifyBefore: row.notify_before_minutes,   // ← добавь эту строку
+        notifyBefore: row.notify_before_minutes,
     };
 }
 
@@ -611,6 +612,23 @@ async function loadTasksFromDB() {
 }
 
 let tasks = [];
+
+// Количество участников по каждой задаче (без владельца)
+let shareCounts = {};
+
+async function loadShareCounts() {
+    const { data, error } = await supabaseClient
+        .from('task_shares')
+        .select('task_id');
+
+    if (error) return;
+
+    shareCounts = {};
+
+    (data || []).forEach(row => {
+        shareCounts[row.task_id] = (shareCounts[row.task_id] || 0) + 1;
+    });
+}
 
 function tasksForDate(date) {
     const key = dateKey(date);
@@ -665,6 +683,8 @@ function createTaskRow(task) {
         row.classList.add('overdue');
     }
 
+    const isOwner = task.userId === currentUserId;
+
     const label = document.createElement('label');
     label.classList.add('task-check');
 
@@ -717,10 +737,10 @@ function createTaskRow(task) {
         info.append(desc);
     }
 
-    if (task.userId !== currentUserId && task.ownerName) {
+    if (!isOwner && task.ownerName) {
         const sharedLabel = document.createElement('p');
         sharedLabel.classList.add('task-shared-label');
-        sharedLabel.innerHTML = `<i class="fa fa-share-nodes" aria-hidden="true"></i> От ${task.ownerName}`;
+        sharedLabel.innerHTML = `<i class="fa fa-share-nodes" aria-hidden="true"></i> from ${task.ownerName}`;
         info.append(sharedLabel);
     }
 
@@ -730,29 +750,38 @@ function createTaskRow(task) {
     shareButton.innerHTML = '<i class="fa fa-user-plus" aria-hidden="true"></i>';
     shareButton.addEventListener('click', () => openShareModal(task));
 
+    // Счётчик участников
+    const shareCount = shareCounts[task.id] || 0;
+
+    if (shareCount > 0) {
+        const badge = document.createElement('span');
+        badge.classList.add('task-share-badge');
+        badge.textContent = shareCount + 1;
+        shareButton.append(badge);
+    }
+
     const deleteButton = document.createElement('button');
     deleteButton.type = 'button';
     deleteButton.classList.add('task-delete');
     deleteButton.innerHTML = '<i class="fa fa-trash" aria-hidden="true"></i>';
 
-    deleteButton.addEventListener('click', async () => {
-        tasks = tasks.filter(item => item.id !== task.id);
-        renderTasksForSelectedDate();
-
-        const { error } = await supabaseClient
-            .from('tasks')
-            .delete()
-            .eq('id', task.id);
-
-        if (error) showAlert('Не удалось удалить задачу');
+    deleteButton.addEventListener('click', () => {
+        if (isOwner) {
+            deleteTaskCompletely(task);
+            return;
+        }
+        openSharedTaskActions(task);
     });
+
+    info.addEventListener('click', () => openTaskDetail(task));
 
     row.append(label, iconBadge, info, shareButton, deleteButton);
 
     return row;
 }
 
-// =========================================================
+
+/* ==================== Анимация добавления ==================== */
 
 const CONFETTI_COLORS = ['#603213', '#c0604a', '#27b98c', '#e8b565', '#4a86c9'];
 
@@ -781,6 +810,7 @@ function celebrateTaskAdded() {
     document.body.append(overlay);
     setTimeout(() => overlay.remove(), 1100);
 }
+
 
 /* ==================== Уведомления ==================== */
 
@@ -1084,26 +1114,38 @@ tasksListEl.addEventListener('touchend', (event) => {
 
 const modalShare = document.querySelector('#modalShare');
 const closeShareModalButton = document.querySelector('#closeShareModal');
-const shareTaskName = document.querySelector('#shareTaskName');
+const shareTaskCard = document.querySelector('#shareTaskCard');
 const shareCollaboratorsList = document.querySelector('#shareCollaborators');
+const shareInviteRow = document.querySelector('.share-invite-row');
 const shareEmailInput = document.querySelector('#shareEmailInput');
 const shareSubmitButton = document.querySelector('#shareSubmitButton');
 const shareError = document.querySelector('#shareError');
 
-let currentShareTaskId = null;
+let currentShareTask = null;
 
 function openShareModal(task) {
-    currentShareTaskId = task.id;
-    shareTaskName.textContent = task.name;
+    currentShareTask = task;
+
+    shareTaskCard.innerHTML = '';
+
+    const card = createTaskRow(task);
+    card.querySelector('.task-share')?.remove();
+    card.querySelector('.task-delete')?.remove();
+    shareTaskCard.append(card);
+
     shareEmailInput.value = '';
     shareError.textContent = '';
+
+    // Приглашать может только владелец задачи
+    const isOwner = task.userId === currentUserId;
+    shareInviteRow.classList.toggle('hidden', !isOwner);
 
     modalShare.classList.remove('hidden');
     modalShare.classList.add('shown');
     closeShareModalButton.classList.remove('hidden');
     closeShareModalButton.classList.add('shown');
 
-    renderShareCollaborators(task.id);
+    renderShareCollaborators(task);
 }
 
 function closeShareModal() {
@@ -1111,61 +1153,113 @@ function closeShareModal() {
     modalShare.classList.remove('shown');
     closeShareModalButton.classList.add('hidden');
     closeShareModalButton.classList.remove('shown');
-    currentShareTaskId = null;
+    currentShareTask = null;
 }
 
 closeShareModalButton.addEventListener('click', closeShareModal);
 
-async function renderShareCollaborators(taskId) {
+async function renderShareCollaborators(task) {
     shareCollaboratorsList.innerHTML = '<p class="share-loading">Загрузка...</p>';
 
     const { data: shares, error } = await supabaseClient
         .from('task_shares')
-        .select('shared_with, shared_with_name')
-        .eq('task_id', taskId);
+        .select('shared_with, shared_with_name, profiles!task_shares_profile_fkey(name, avatar_url)')
+        .eq('task_id', task.id);
 
     if (error) {
         shareCollaboratorsList.innerHTML = '<p class="share-empty">Не удалось загрузить список</p>';
         return;
     }
 
-    if (!shares || shares.length === 0) {
-        shareCollaboratorsList.innerHTML = '<p class="share-empty">Пока ни с кем не расшарено</p>';
-        return;
+    // Владелец задачи — первым в списке
+    const { data: owner } = await supabaseClient
+        .from('profiles')
+        .select('id, name, avatar_url')
+        .eq('id', task.userId)
+        .maybeSingle();
+
+    const people = [];
+
+    if (owner) {
+        people.push({
+            id: owner.id,
+            name: owner.name,
+            avatar: owner.avatar_url,
+            isOwner: true
+        });
     }
+
+    (shares || []).forEach(share => {
+        people.push({
+            id: share.shared_with,
+            name: (share.profiles && share.profiles.name) || share.shared_with_name,
+            avatar: share.profiles && share.profiles.avatar_url,
+            isOwner: false
+        });
+    });
 
     shareCollaboratorsList.innerHTML = '';
 
-    shares.forEach(share => {
+    const viewerIsOwner = task.userId === currentUserId;
+
+    people.forEach(person => {
+        const isMe = person.id === currentUserId;
+
         const row = document.createElement('div');
         row.classList.add('collaborator-row');
+        if (person.isOwner) row.classList.add('is-owner');
+
+        const avatar = document.createElement('img');
+        avatar.classList.add('collaborator-avatar');
+        avatar.src = person.avatar || DEFAULT_AVATAR;
+        avatar.alt = '';
 
         const info = document.createElement('p');
         info.classList.add('collaborator-name');
-        info.textContent = share.shared_with_name || 'Пользователь';
+        info.textContent = isMe ? 'Вы' : (person.name || 'Пользователь');
 
-        const removeButton = document.createElement('button');
-        removeButton.type = 'button';
-        removeButton.classList.add('collaborator-remove');
-        removeButton.innerHTML = '<i class="fa fa-xmark" aria-hidden="true"></i>';
+        row.append(avatar, info);
 
-        removeButton.addEventListener('click', async () => {
-            await supabaseClient
-                .from('task_shares')
-                .delete()
-                .eq('task_id', taskId)
-                .eq('shared_with', share.shared_with);
+        // Убрать участника может только владелец
+        if (viewerIsOwner && !person.isOwner) {
+            const removeButton = document.createElement('button');
+            removeButton.type = 'button';
+            removeButton.classList.add('collaborator-remove');
+            removeButton.innerHTML = '<i class="fa fa-xmark" aria-hidden="true"></i>';
 
-            renderShareCollaborators(taskId);
-        });
+            removeButton.addEventListener('click', async () => {
+                const { error: removeError } = await supabaseClient
+                    .from('task_shares')
+                    .delete()
+                    .eq('task_id', task.id)
+                    .eq('shared_with', person.id);
 
-        row.append(info, removeButton);
+                if (removeError) {
+                    showAlert('Не удалось удалить участника');
+                    return;
+                }
+
+                // Уведомляем удалённого в Telegram (без ожидания)
+                supabaseClient.functions.invoke('notify-share-removed', {
+                    body: { task_id: task.id, removed_user_id: person.id }
+                });
+
+                await loadShareCounts();
+                renderTasksForSelectedDate();
+                renderShareCollaborators(task);
+            });
+
+            row.append(removeButton);
+        }
+
         shareCollaboratorsList.append(row);
     });
 }
 
 shareSubmitButton.addEventListener('click', async () => {
     shareError.textContent = '';
+
+    if (!currentShareTask) return;
 
     const email = shareEmailInput.value.trim();
 
@@ -1196,7 +1290,7 @@ shareSubmitButton.addEventListener('click', async () => {
     const { error: insertError } = await supabaseClient
         .from('task_shares')
         .insert({
-            task_id: currentShareTaskId,
+            task_id: currentShareTask.id,
             shared_with: targetUser.id,
             shared_with_name: targetUser.name
         });
@@ -1210,7 +1304,10 @@ shareSubmitButton.addEventListener('click', async () => {
 
     shareEmailInput.value = '';
     showAlert('Задача расшарена');
-    renderShareCollaborators(currentShareTaskId);
+
+    await loadShareCounts();
+    renderTasksForSelectedDate();
+    renderShareCollaborators(currentShareTask);
 });
 
 
@@ -1224,6 +1321,7 @@ function scheduleRealtimeRefresh() {
 
     realtimeRefreshTimer = setTimeout(async () => {
         tasks = await loadTasksFromDB();
+        await loadShareCounts();
         renderTasksForSelectedDate();
     }, 300);
 }
@@ -1235,7 +1333,12 @@ function subscribeRealtime() {
         .channel('tasks-realtime')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, scheduleRealtimeRefresh)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'task_shares' }, scheduleRealtimeRefresh)
-        .subscribe();
+        .subscribe((status) => {
+            if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+                unsubscribeRealtime();
+                setTimeout(subscribeRealtime, 3000);
+            }
+        });
 }
 
 function unsubscribeRealtime() {
@@ -1247,21 +1350,80 @@ function unsubscribeRealtime() {
 }
 
 
+/* ==================== Автообновление ==================== */
+
+let lastRenderedDay = toISODate(new Date());
+
+// Раз в минуту: пересчёт просроченных задач и смена суток
+setInterval(() => {
+    const nowDay = toISODate(new Date());
+
+    if (nowDay !== lastRenderedDay) {
+        lastRenderedDay = nowDay;
+        today.setTime(Date.now());
+        selectToday();
+        return;
+    }
+
+    renderTasksForSelectedDate();
+}, 60000);
+
+// Возврат в приложение: перечитываем базу напрямую
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') return;
+
+    const nowDay = toISODate(new Date());
+
+    if (nowDay !== lastRenderedDay) {
+        lastRenderedDay = nowDay;
+        today.setTime(Date.now());
+        selectToday();
+    }
+
+    scheduleRealtimeRefresh();
+});
+
+// Восстановление сети
+window.addEventListener('online', () => {
+    unsubscribeRealtime();
+    subscribeRealtime();
+    scheduleRealtimeRefresh();
+});
+
+
 /* ==================== Первичный рендер ==================== */
 
 renderTasksForSelectedDate();
 
-// ====================Меню==========================
-const settingsLogoutButton = document.querySelector('#settingsLogoutButton');
 
-// Клик по имени открывает настройки напрямую
+/* ==================== Меню / выход ==================== */
+
+const settingsLogoutButton = document.querySelector('#settingsLogoutButton');
+const confirmLogout = document.querySelector('#confirmLogout');
+const confirmLogoutCancel = document.querySelector('#confirmLogoutCancel');
+const confirmLogoutOk = document.querySelector('#confirmLogoutOk');
+
 greetingName.addEventListener('click', () => {
     openSettings();
 });
 
-settingsLogoutButton.addEventListener('click', () => {
-    confirmLogout.classList.remove('hidden');
-});
+if (settingsLogoutButton && confirmLogout) {
+    settingsLogoutButton.addEventListener('click', () => {
+        confirmLogout.classList.remove('hidden');
+    });
+
+    confirmLogoutCancel.addEventListener('click', () => {
+        confirmLogout.classList.add('hidden');
+    });
+
+    confirmLogoutOk.addEventListener('click', async () => {
+        confirmLogout.classList.add('hidden');
+        settingsModal.classList.add('hidden');
+        await supabaseClient.auth.signOut();
+    });
+}
+
+
 /* ==================== Telegram ==================== */
 
 const TELEGRAM_BOT_USERNAME = 'Tasky_alert_bot';
@@ -1282,7 +1444,7 @@ async function updateTelegramButtonState() {
         telegramButtonText.innerHTML = 'Telegram <i class="fa fa-check" aria-hidden="true"></i>';
         telegramConnectButton.classList.add('linked');
     } else {
-        telegramButtonText.textContent = 'Подключить Telegram';
+        telegramButtonText.textContent = 'Connect Telegram';
         telegramConnectButton.classList.remove('linked');
     }
 }
@@ -1303,23 +1465,29 @@ telegramConnectButton.addEventListener('click', async () => {
     window.open(`https://t.me/${TELEGRAM_BOT_USERNAME}?start=${code}`, '_blank');
 });
 
+
 /* ==================== Настройки ==================== */
 
 const settingsModal = document.querySelector('#settingsModal');
 const settingsBack = document.querySelector('#settingsBack');
 const timezoneSelect = document.querySelector('#timezoneSelect');
 
+const settingsNameInput = document.querySelector('#settingsNameInput');
+const settingsSaveName = document.querySelector('#settingsSaveName');
+const settingsTelegramStatus = document.querySelector('#settingsTelegramStatus');
+const settingsTelegramUnlink = document.querySelector('#settingsTelegramUnlink');
+
 async function openSettings() {
     const { data: profile } = await supabaseClient
         .from('profiles')
-        .select('name, timezone')
+        .select('name, timezone, avatar_url')
         .eq('id', currentUserId)
         .maybeSingle();
 
     settingsNameInput.value = (profile && profile.name) || '';
     timezoneSelect.value = (profile && profile.timezone) || 'Europe/Moscow';
+    syncAvatarUI(profile && profile.avatar_url);
 
-    // Статус телеграма
     const { data: tg } = await supabaseClient
         .from('telegram_links')
         .select('chat_id')
@@ -1343,10 +1511,7 @@ function closeSettings() {
     settingsModal.classList.add('hidden');
 }
 
-const settingsNameInput = document.querySelector('#settingsNameInput');
-const settingsSaveName = document.querySelector('#settingsSaveName');
-const settingsTelegramStatus = document.querySelector('#settingsTelegramStatus');
-const settingsTelegramUnlink = document.querySelector('#settingsTelegramUnlink');
+settingsBack.addEventListener('click', closeSettings);
 
 /* --- Сохранение имени --- */
 
@@ -1365,15 +1530,27 @@ settingsSaveName.addEventListener('click', async () => {
         .update({ name: newName })
         .eq('id', currentUserId);
 
-    settingsSaveName.disabled = false;
-
     if (error) {
+        settingsSaveName.disabled = false;
         showAlert('Не удалось сохранить имя');
         return;
     }
 
     currentUserName = newName;
     greetingName.textContent = `Hello, ${newName}`;
+
+    // Обновляем слепки имени в уже созданных записях
+    await supabaseClient
+        .from('tasks')
+        .update({ owner_name: newName })
+        .eq('user_id', currentUserId);
+
+    await supabaseClient
+        .from('task_shares')
+        .update({ shared_with_name: newName })
+        .eq('shared_with', currentUserId);
+
+    settingsSaveName.disabled = false;
     showAlert('Имя обновлено');
 });
 
@@ -1400,7 +1577,7 @@ settingsTelegramUnlink.addEventListener('click', async () => {
     showAlert('Telegram отвязан');
 });
 
-settingsBack.addEventListener('click', closeSettings);
+/* --- Часовой пояс --- */
 
 timezoneSelect.addEventListener('change', async () => {
     const tz = timezoneSelect.value;
@@ -1417,9 +1594,8 @@ timezoneSelect.addEventListener('change', async () => {
     showAlert('Часовой пояс сохранён');
 });
 
-setInterval(() => {
-    renderTasksForSelectedDate();
-}, 60 * 1000);
+
+/* ==================== Аватар в настройках ==================== */
 
 const DEFAULT_AVATAR = 'images/1.jpg';
 
@@ -1427,12 +1603,13 @@ const settingsAvatarPreview = document.querySelector('#settingsAvatarPreview');
 const settingsAvatarChange = document.querySelector('#settingsAvatarChange');
 const settingsAvatarDelete = document.querySelector('#settingsAvatarDelete');
 
-// Синхронизирует превью в настройках с текущим аватаром
 function syncAvatarUI(url) {
     const src = url || DEFAULT_AVATAR;
+
     profilePhoto.src = src;
-    settingsAvatarPreview.src = src;
-    settingsAvatarDelete.classList.toggle('hidden', !url);
+
+    if (settingsAvatarPreview) settingsAvatarPreview.src = src;
+    if (settingsAvatarDelete) settingsAvatarDelete.classList.toggle('hidden', !url);
 }
 
 settingsAvatarChange.addEventListener('click', () => {
@@ -1474,17 +1651,187 @@ settingsAvatarDelete.addEventListener('click', async () => {
     showAlert('Фото удалено');
 });
 
-// Перерисовка раз в минуту: просроченные задачи и смена дня
-let lastRenderedDay = toISODate(new Date());
 
-setInterval(() => {
-    const today = toISODate(new Date());
+/* ==================== Удаление расшаренной задачи ==================== */
 
-    if (today !== lastRenderedDay) {
-        lastRenderedDay = today;
-        buildCalendar();
-        selectDate(new Date());
+const sharedTaskActions = document.querySelector('#sharedTaskActions');
+const sharedTaskActionsTitle = document.querySelector('#sharedTaskActionsTitle');
+const leaveTaskButton = document.querySelector('#leaveTaskButton');
+const requestDeleteButton = document.querySelector('#requestDeleteButton');
+const sharedTaskActionsCancel = document.querySelector('#sharedTaskActionsCancel');
+
+let pendingSharedTask = null;
+
+async function deleteTaskCompletely(task) {
+    tasks = tasks.filter(item => item.id !== task.id);
+    renderTasksForSelectedDate();
+
+    const { error } = await supabaseClient
+        .from('tasks')
+        .delete()
+        .eq('id', task.id);
+
+    if (error) showAlert('Не удалось удалить задачу');
+}
+
+function openSharedTaskActions(task) {
+    pendingSharedTask = task;
+    sharedTaskActionsTitle.textContent = task.name;
+    sharedTaskActions.classList.remove('hidden');
+}
+
+function closeSharedTaskActions() {
+    sharedTaskActions.classList.add('hidden');
+    pendingSharedTask = null;
+}
+
+sharedTaskActionsCancel.addEventListener('click', closeSharedTaskActions);
+
+leaveTaskButton.addEventListener('click', async () => {
+    const task = pendingSharedTask;
+    closeSharedTaskActions();
+    if (!task) return;
+
+    const { error } = await supabaseClient
+        .from('task_shares')
+        .delete()
+        .eq('task_id', task.id)
+        .eq('shared_with', currentUserId);
+
+    if (error) {
+        showAlert('Не удалось покинуть задачу');
+        return;
     }
 
+    tasks = tasks.filter(item => item.id !== task.id);
+    await loadShareCounts();
     renderTasksForSelectedDate();
-}, 60000);
+    showAlert('Вы покинули задачу');
+});
+
+requestDeleteButton.addEventListener('click', async () => {
+    const task = pendingSharedTask;
+    closeSharedTaskActions();
+    if (!task) return;
+
+    const { error } = await supabaseClient.functions.invoke('request-task-delete', {
+        body: { task_id: task.id }
+    });
+
+    if (error) {
+        showAlert('Не удалось отправить запрос');
+        return;
+    }
+
+    showAlert('Запрос отправлен владельцу');
+});
+
+/* ==================== Раскрытая карточка задачи ==================== */
+
+const taskDetail = document.querySelector('#taskDetail');
+const taskDetailClose = document.querySelector('#taskDetailClose');
+const taskDetailIcon = document.querySelector('#taskDetailIcon');
+const taskDetailName = document.querySelector('#taskDetailName');
+const taskDetailMeta = document.querySelector('#taskDetailMeta');
+const taskDetailDesc = document.querySelector('#taskDetailDesc');
+
+function openTaskDetail(task) {
+    const icon = task.icon || ICONS[0];
+    taskDetailIcon.style.backgroundColor = icon.bg;
+    taskDetailIcon.innerHTML = `<i class="fa ${icon.icon}" aria-hidden="true"></i>`;
+
+    taskDetailName.textContent = task.name;
+
+    // Дата, время, статус, автор
+    taskDetailMeta.innerHTML = '';
+
+    const [Y, M, D] = task.date.split('-').map(Number);
+    const dateLabel = new Date(Y, M, D).toLocaleDateString('ru-RU', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+    });
+
+    addChip('fa-calendar', dateLabel);
+
+    if (task.time) {
+        addChip('fa-clock', task.time, isOverdue(task));
+    }
+
+    if (task.done) {
+        addChip('fa-check', 'Выполнено');
+    }
+
+    if (task.userId !== currentUserId && task.ownerName) {
+        addChip('fa-share-nodes', `from ${task.ownerName}`);
+    }
+
+    taskDetailDesc.textContent = task.description || '';
+    taskDetailDesc.classList.toggle('hidden', !task.description);
+
+    taskDetail.classList.remove('hidden', 'closing');
+    document.body.style.overflow = 'hidden';
+}
+
+function addChip(iconClass, text, isDanger) {
+    const chip = document.createElement('span');
+    chip.classList.add('task-detail-chip');
+    if (isDanger) chip.classList.add('overdue');
+    chip.innerHTML = `<i class="fa ${iconClass}" aria-hidden="true"></i> ${text}`;
+    taskDetailMeta.append(chip);
+}
+
+function closeTaskDetail() {
+    taskDetail.classList.add('closing');
+    document.body.style.overflow = '';
+
+    setTimeout(() => {
+        taskDetail.classList.add('hidden');
+        taskDetail.classList.remove('closing');
+    }, 180);
+}
+
+taskDetailClose.addEventListener('click', closeTaskDetail);
+
+// Закрытие по Escape
+document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !taskDetail.classList.contains('hidden')) {
+        closeTaskDetail();
+    }
+});
+
+/* --- Показать/скрыть пароль --- */
+
+document.querySelectorAll('.auth-eye').forEach(button => {
+    button.addEventListener('click', () => {
+        const input = document.querySelector(`#${button.dataset.target}`);
+        const hidden = input.type === 'password';
+
+        input.type = hidden ? 'text' : 'password';
+        button.innerHTML = hidden
+            ? '<i class="fa fa-eye-slash" aria-hidden="true"></i>'
+            : '<i class="fa fa-eye" aria-hidden="true"></i>';
+    });
+});
+
+/* --- Восстановление пароля --- */
+
+document.querySelector('#forgotPassword').addEventListener('click', async () => {
+    const email = loginEmailInput.value.trim();
+
+    if (!isValidEmail(email)) {
+        loginError.textContent = 'Введите почту, на неё придёт ссылка';
+        loginEmailInput.focus();
+        return;
+    }
+
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin
+    });
+
+    loginError.textContent = error
+        ? 'Не удалось отправить письмо'
+        : '';
+
+    if (!error) showAlert('Письмо для сброса пароля отправлено');
+});

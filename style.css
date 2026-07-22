@@ -20,6 +20,7 @@
     /* размеры аватара — меняются в медиазапросах */
     --avatar-size: 70px;
     --header-max: 800px;
+    --font-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
 html {
@@ -39,7 +40,7 @@ body {
     justify-content: center;
     align-items: start;
 
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-family: var(--font-ui);
 }
 
 .container {
@@ -50,98 +51,316 @@ body {
 }
 
 /* ---------- Экран входа / регистрации ---------- */
-
 .auth-screen {
+    position: relative;
     width: 100%;
-    height: 100dvh;
+    min-height: 100dvh;
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: var(--bg-body);
-    padding: 20px;
+    padding: 24px 20px;
+    background: transparent;
+    overflow: hidden;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
+/* Мягкие пятна на фоне */
+.auth-blob {
+    position: absolute;
+    border-radius: 50%;
+    background: #ece9fb;
+    pointer-events: none;
+}
+
+.auth-blob-1 {
+    width: 320px;
+    height: 320px;
+    top: -110px;
+    right: -90px;
+}
+
+.auth-blob-2 {
+    width: 260px;
+    height: 260px;
+    bottom: -100px;
+    left: -80px;
+}
+
 .auth-box {
+    position: relative;
+    z-index: 1;
     width: 100%;
-    max-width: 380px;
+    max-width: 400px;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    align-items: stretch;
+    gap: 0;
+}
+
+.auth-logo {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 14px;
+}
+
+.auth-logo svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 6px 16px rgba(108, 99, 255, 0.25));
 }
 
 .auth-title {
-    font-size: 28px;
-    font-weight: 700;
+    font-size: 34px;
+    font-weight: 800;
     text-align: center;
+    letter-spacing: -0.02em;
+    color: #23222b;
 }
+
+.auth-tagline {
+    margin-top: 6px;
+    font-size: 14px;
+    text-align: center;
+    color: #8b8a99;
+}
+
+/* ---- Переключатель вкладок ---- */
 
 .auth-tabs {
     display: flex;
-    background-color: #eae7e2;
-    border-radius: 999px;
-    padding: 4px;
+    margin-top: 26px;
+    padding: 5px;
+    border-radius: 14px;
+    background: #eeecf5;
 }
 
 .auth-tab {
     flex: 1;
+    padding: 11px;
     border: none;
+    border-radius: 10px;
     background: none;
-    padding: 10px;
-    border-radius: 999px;
-    font-size: 16px;
+    font-family: inherit;
+    font-size: 14px;
     font-weight: 600;
-    color: var(--muted);
+    color: #8b8a99;
     cursor: pointer;
-    transition: 0.15s;
+    transition: 0.2s;
 }
 
 .auth-tab.active {
-    background-color: var(--bg-day);
-    color: var(--active-day);
+    background: var(--bg-button);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(108, 99, 255, 0.3);
 }
+
+/* ---- Поля ---- */
 
 .auth-form {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
+    margin-top: 24px;
 }
 
-.auth-form input {
-    padding: 12px 18px;
-    width: 100%;
-    border: 1px solid #000;
-    border-radius: 30px;
+.auth-field {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.auth-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #4a4956;
+}
+
+.auth-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border: 1px solid #e6e4ef;
+    border-radius: 13px;
+    transition: 0.15s;
+}
+
+.auth-input-wrap:focus-within {
+    border-color: var(--bg-button);
+    box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.12);
+}
+
+.auth-input-wrap>i {
+    position: absolute;
+    left: 16px;
     font-size: 16px;
+    color: #b3b1c2;
+    pointer-events: none;
+}
+
+.auth-input-wrap input {
+    width: 100%;
+    padding: 15px 16px 15px 44px;
+    border: none;
+    border-radius: 13px;
+    background: none;
     outline: none;
     font-family: inherit;
+    font-size: 16px;
+    color: #23222b;
+}
+
+.auth-input-wrap input::placeholder {
+    color: #b3b1c2;
+}
+
+.auth-eye {
+    position: absolute;
+    right: 6px;
+    width: 38px;
+    height: 38px;
+    border: none;
+    background: none;
+    color: #b3b1c2;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.auth-eye:hover {
+    color: var(--bg-button);
+}
+
+/* ---- Запомнить / забыли пароль ---- */
+
+.auth-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: -2px;
+}
+
+.auth-remember {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #4a4956;
+    cursor: pointer;
+}
+
+.auth-remember input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.auth-checkbox {
+    width: 18px;
+    height: 18px;
+    border-radius: 5px;
+    border: 1.5px solid #c9c7d6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: 0.15s;
+}
+
+.auth-remember input:checked+.auth-checkbox {
+    background: var(--bg-button);
+    border-color: var(--bg-button);
+}
+
+.auth-remember input:checked+.auth-checkbox::after {
+    content: '';
+    width: 5px;
+    height: 9px;
+    margin-top: -2px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.auth-link {
+    border: none;
+    background: none;
+    padding: 0;
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--bg-button);
+    cursor: pointer;
+}
+
+.auth-link:hover {
+    text-decoration: underline;
+}
+
+/* ---- Кнопка ---- */
+
+.auth-submit {
+    padding: 16px;
+    width: 100%;
+    border: none;
+    border-radius: 13px;
+    background: var(--bg-button);
+    color: #fff;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(108, 99, 255, 0.3);
+    transition: 0.15s;
+}
+
+.auth-submit:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px rgba(108, 99, 255, 0.38);
+}
+
+.auth-submit:disabled {
+    opacity: 0.6;
+    cursor: default;
+    box-shadow: none;
 }
 
 .auth-error {
     font-size: 13px;
     color: var(--danger);
     min-height: 16px;
+    margin-top: -6px;
 }
 
-.auth-submit {
-    padding: 14px;
-    width: 100%;
-    border: none;
-    border-radius: 30px;
-    background-color: var(--bg-button);
-    color: #fff;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
+.auth-terms {
+    margin-top: 22px;
+    font-size: 12px;
+    line-height: 1.6;
+    text-align: center;
+    color: #9a99a8;
 }
 
-.auth-submit:disabled {
-    opacity: 0.6;
-    cursor: default;
+.auth-terms a {
+    color: var(--bg-button);
+    text-decoration: none;
 }
 
-.auth-submit:hover:not(:disabled) {
-    opacity: 0.9;
+.auth-terms a:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 400px) {
+    .auth-title {
+        font-size: 29px;
+    }
+
+    .auth-tabs {
+        margin-top: 20px;
+    }
+
+    .auth-form {
+        gap: 13px;
+    }
 }
 
 .email-sent {
@@ -172,10 +391,12 @@ body {
     0%,
     100% {
         transform: translateY(0);
+
     }
 
     50% {
         transform: translateY(-8px);
+
     }
 }
 
@@ -266,19 +487,11 @@ body {
     margin-right: 5px;
 }
 
-.today-button.hidden {
-    display: none;
-}
-
-/* ИСПРАВЛЕНО: фиксированный размер вместо min-width,
-   аватары привязаны через top/left, а не через "статическую позицию". */
-
 .left {
     position: relative;
     width: var(--avatar-size);
     height: var(--avatar-size);
     flex: 0 0 var(--avatar-size);
-    min-width: 0;
     cursor: pointer;
 }
 
@@ -388,7 +601,7 @@ body {
 .days {
     width: 50px;
     height: 50px;
-    border-radius: 999px;
+    border-radius: 30%;
     background-color: var(--bg-day);
 
     display: flex;
@@ -463,19 +676,10 @@ body {
     border-radius: 15px;
 }
 
-.see-all.hidden,
-.exit-list.hidden {
-    display: none;
-}
-
 .list-date-label {
     margin-top: 6px;
     font-size: 13px;
     color: var(--muted);
-}
-
-.list-date-label.hidden {
-    display: none;
 }
 
 .tasks {
@@ -551,6 +755,76 @@ body {
     display: flex;
     flex-direction: column;
     gap: 4px;
+    cursor: pointer;
+}
+
+/* ---- Раскрытая карточка ---- */
+
+@keyframes detailIn {
+    from {
+        opacity: 0;
+        transform: scale(0.94) translateY(14px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+@keyframes detailOut {
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    to {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+}
+
+.task-detail-name {
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.25;
+    word-break: break-word;
+}
+
+.task-detail-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.task-detail-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: 999px;
+    background: var(--bg-day);
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.task-detail-chip.done {
+    color: var(--checkbox);
+}
+
+.task-detail-chip.overdue {
+    color: var(--danger);
+    font-weight: 600;
+}
+
+.task-detail-desc {
+    margin-top: 24px;
+    font-size: 16px;
+    line-height: 1.6;
+    color: #4a4a52;
+    white-space: pre-wrap;
+    word-break: break-word;
 }
 
 .task-name {
@@ -568,7 +842,17 @@ body {
     font-size: 13px;
     color: #7a7a7a;
     word-break: break-word;
+
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
+
+/* .task.done  {
+    text-decoration: line-through;
+    color: #adadad;
+} */
 
 .task.done .task-name {
     text-decoration: line-through;
@@ -679,61 +963,6 @@ body {
 
 /* ---------- Модальное окно ---------- */
 
-.modal-task.shown {
-    width: 100%;
-    height: 100dvh;
-    overflow-y: auto;
-    overflow-x: hidden;
-
-    position: fixed;
-    top: 0;
-    left: 0;
-
-    background-color: var(--bg-body);
-    z-index: 50;
-}
-
-.modal-task.hidden {
-    display: none;
-}
-
-.modal-close-tasks.shown {
-    width: 40px;
-    height: 40px;
-    border: 1px solid var(--bg-day);
-    background-color: var(--active-day);
-    color: var(--bg-day);
-    border-radius: 999px;
-    cursor: pointer;
-
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 51;
-}
-
-.modal-close-tasks.hidden {
-    display: none;
-}
-
-.modal-share.shown {
-    width: 100%;
-    height: 100dvh;
-    overflow-y: auto;
-    overflow-x: hidden;
-
-    position: fixed;
-    top: 0;
-    left: 0;
-
-    background-color: var(--bg-body);
-    z-index: 50;
-}
-
-.modal-share.hidden {
-    display: none;
-}
-
 .share-task-name {
     font-size: 16px;
     color: var(--muted);
@@ -742,34 +971,57 @@ body {
 }
 
 .share-collaborators {
-    width: 100%;
-    max-width: 600px;
+    flex-direction: row;
+    flex-wrap: wrap;
     display: flex;
-    flex-direction: column;
-    gap: 8px;
 }
 
 .collaborator-row {
+    position: relative;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: space-between;
-    background-color: var(--bg-day);
-    border-radius: 14px;
-    padding: 10px 14px;
+    gap: 6px;
+    background: none;
+    border-radius: 0;
+    padding: 0;
+    width: 68px;
+}
+
+.collaborator-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 999px;
+    object-fit: cover;
+    background: #ddd;
+    border: 1px solid var(--divider-line);
 }
 
 .collaborator-name {
-    font-size: 16px;
-    font-weight: 600;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .collaborator-remove {
-    background: none;
-    border: none;
-    color: var(--danger);
-    cursor: pointer;
-    padding: 4px;
-    font-size: 16px;
+    position: absolute;
+    top: -4px;
+    right: 2px;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border-radius: 999px;
+    background: var(--danger);
+    color: #fff;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--bg-body);
 }
 
 .collaborator-remove:hover {
@@ -833,18 +1085,6 @@ body {
     font-weight: 700;
 }
 
-.modal-container {
-    width: 100%;
-    max-width: 100%;
-    overflow-x: hidden;
-    padding: 20px;
-    margin-top: 50px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-}
-
 .modal-task-header {
     position: fixed;
     top: 0;
@@ -857,13 +1097,19 @@ body {
     pointer-events: none;
 }
 
+.modal-container h1 {
+    position: relative;
+    top: -40px;
+}
+
+
 .modal-container input[type="text"] {
     padding: 10px 20px;
     width: 100%;
     max-width: 600px;
     outline: none;
     border: 1px solid #000;
-    border-radius: 30px;
+    border-radius: 15px;
     font-size: 16px;
 }
 
@@ -874,7 +1120,7 @@ body {
     max-width: 600px;
     outline: none;
     border: 1px solid #000;
-    border-radius: 30px;
+    border-radius: 15px;
     font-size: 16px;
     font-family: inherit;
     resize: vertical;
@@ -942,7 +1188,7 @@ body {
     aspect-ratio: 1;
     border: none;
     background: none;
-    border-radius: 999px;
+    border-radius: 30%;
     font-size: 13px;
     cursor: pointer;
     display: flex;
@@ -1061,62 +1307,68 @@ body {
 @media (max-width: 640px) {
     :root {
         --avatar-size: 52px;
+
     }
 
     body {
         padding-top: 30px;
+
     }
 
     .header {
         padding: 10px 16px;
+
     }
 
     .right h1 {
         font-size: 20px;
+
     }
 
     .main {
         padding: 0 16px;
+
     }
 
     .scroll-container {
         width: 100%;
+
     }
 
     .calendar {
         margin: 10px 0;
         gap: 8px;
+
     }
 
     .days {
         width: 42px;
         height: 42px;
         font-size: 16px;
+
     }
 
     .weekday {
         font-size: 10px;
+
     }
 
     .month-divider {
         width: 28px;
+
     }
 
     .month-label {
         font-size: 12px;
+
     }
 
     .container.list-mode {
         height: calc(100dvh - 30px);
+
     }
 
     /* ---- Модалка создания задачи ---- */
-
-    .modal-container {
-        gap: 14px;
-        padding: 16px;
-        margin-top: 40px;
-    }
 
     .modal-container input[type="text"],
     .modal-container input[type="time"],
@@ -1124,59 +1376,72 @@ body {
     .date-picker,
     .icon-picker {
         max-width: 100%;
+
     }
 
     .modal-container textarea {
         min-height: 90px;
+
     }
 
     .share-invite-row {
         flex-direction: column;
         max-width: 100%;
+
     }
 
     .share-invite-row .modal-save-task {
         width: 100%;
+
     }
 
     .date-picker {
         padding: 12px;
+
     }
 
     .picker-nav {
         width: 28px;
         height: 28px;
+
     }
 
     .picker-title {
         font-size: 13px;
+
     }
 
     .picker-weekdays {
         font-size: 10px;
+
     }
 
     .picker-day {
         font-size: 12px;
+
     }
 
     .icon-grid {
         grid-template-columns: repeat(4, 1fr);
         gap: 8px;
+
     }
 
     .icon-option {
         font-size: 16px;
         border-radius: 12px;
+
     }
 
     .modal-save-task {
         max-width: 100%;
         font-size: 15px;
+
     }
 
     .task-time {
         width: 100px;
+
     }
 }
 
@@ -1184,18 +1449,22 @@ body {
     .days {
         width: 38px;
         height: 38px;
+
     }
 
     .calendar {
         gap: 6px;
+
     }
 
     .picker-grid {
         gap: 3px;
+
     }
 
     .icon-grid {
         gap: 6px;
+
     }
 }
 
@@ -1231,20 +1500,24 @@ body {
     0% {
         transform: scale(0) rotate(-20deg);
         opacity: 0;
+
     }
 
     55% {
         transform: scale(1.15) rotate(6deg);
         opacity: 1;
+
     }
 
     75% {
         transform: scale(0.95) rotate(-2deg);
+
     }
 
     100% {
         transform: scale(1) rotate(0deg);
         opacity: 1;
+
     }
 }
 
@@ -1263,11 +1536,13 @@ body {
     0% {
         opacity: 1;
         transform: translate(-50%, -50%) translate(0, 0) rotate(0deg) scale(1);
+
     }
 
     100% {
         opacity: 0;
         transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(0.4);
+
     }
 }
 
@@ -1456,29 +1731,6 @@ body {
     color: var(--muted);
 }
 
-.settings-modal {
-    position: fixed;
-    inset: 0;
-    z-index: 55;
-    background: var(--bg-body);
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-}
-
-.settings-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 20px;
-    border-bottom: 1px solid var(--divider-line);
-}
-
-.settings-header h2 {
-    font-size: 20px;
-    font-weight: 600;
-}
-
 .settings-back {
     background: none;
     border: none;
@@ -1494,13 +1746,6 @@ body {
 
 .settings-back:hover {
     background: var(--bg-day);
-}
-
-.settings-content {
-    padding: 20px;
-    max-width: 500px;
-    width: 100%;
-    margin: 0 auto;
 }
 
 .settings-section {
@@ -1649,7 +1894,6 @@ body {
     border: 1px solid var(--divider-line);
     border-radius: 12px;
 
-    display: flex;
     justify-content: space-between;
 }
 
@@ -1724,8 +1968,275 @@ body {
     color: #fff;
 }
 
-.settings-content {
+.confirm-actions-column {
+    flex-direction: column;
+}
+
+.confirm-plain {
+    padding: 12px;
+    border: none;
+    background: none;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--muted);
+    cursor: pointer;
+}
+
+.share-task-card {
+    width: 100%;
+    max-width: 600px;
+}
+
+.share-task-card .task {
+    cursor: default;
+}
+
+.share-task-card .task-check {
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+.task-share {
+    position: relative;
+}
+
+.task-share-badge {
+    position: absolute;
+    bottom: -3px;
+    left: -5px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 1px;
+    border-radius: 999px;
+    background: var(--bg-button);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 16px;
+    text-align: center;
+    pointer-events: none;
+}
+
+.settings-danger-section {
+    padding: 20px;
+    border-top: 1px solid var(--divider-line);
+    width: 100%;
+    position: relative;
+}
+
+.settings-danger-label {
+    color: var(--danger);
+}
+
+.settings-delete-account {
+    width: 100%;
+    padding: 14px;
+    border: 1px solid var(--danger);
+    border-radius: 12px;
+    background: none;
+    color: var(--danger);
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.settings-delete-account:hover {
+    background: var(--danger);
+    color: #fff;
+}
+
+.settings-delete-account:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.confirm-text {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--muted);
+    text-align: center;
+    margin: -8px 0 16px;
+}
+
+
+/* ==================== Модальные окна ==================== */
+
+/* Подложка: перекрывает весь экран */
+.modal-task.shown,
+.modal-share.shown,
+.settings-modal:not(.hidden),
+.task-detail:not(.hidden) {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+
+    background: var(--bg-body);
+
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.settings-modal:not(.hidden) {
+    z-index: 55;
+}
+
+.task-detail:not(.hidden) {
+    z-index: 65;
+}
+
+/* Панель: не шире 800px, по центру */
+.modal-container,
+.settings-panel,
+.task-detail-panel {
+    width: 100%;
+    max-width: 800px;
+    min-height: 100dvh;
+    background: var(--bg-body);
+    position: relative;
+}
+
+/* ---- Создание задачи и шаринг ---- */
+
+.modal-container {
+    padding: 70px 24px calc(40px + env(safe-area-inset-bottom, 0px));
     display: flex;
     flex-direction: column;
-    min-height: 100%;
+    align-items: center;
+    gap: 20px;
+    overflow-x: hidden;
+}
+
+.modal-close-tasks.shown {
+    position: fixed;
+    top: max(20px, env(safe-area-inset-top, 0px));
+    right: max(20px, calc(50% - 400px + 20px));
+    z-index: 60;
+
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 999px;
+    background-color: var(--active-day);
+    color: var(--bg-day);
+    cursor: pointer;
+}
+
+/* ---- Настройки ---- */
+
+.settings-panel {
+    display: flex;
+    flex-direction: column;
+}
+
+.settings-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--divider-line);
+    background: var(--bg-body);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.settings-header h2 {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.settings-content {
+    flex: 1;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 24px 24px calc(24px + env(safe-area-inset-bottom, 0px));
+    display: flex;
+    flex-direction: column;
+}
+
+/* ---- Детали задачи ---- */
+
+.task-detail-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 24px 24px calc(24px + env(safe-area-inset-bottom, 0px));
+    animation: detailIn 0.25s cubic-bezier(.22, 1, .36, 1);
+}
+
+.task-detail.closing .task-detail-panel {
+    animation: detailOut 0.18s ease-in forwards;
+}
+
+.task-detail-close {
+    align-self: flex-end;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 999px;
+    background: var(--active-day);
+    color: var(--bg-day);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.task-detail-icon {
+    width: 72px;
+    height: 72px;
+    flex-shrink: 0;
+    border-radius: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    color: #fff;
+    margin: 10px 0 20px;
+}
+
+.task-detail-name,
+.task-detail-meta,
+.task-detail-desc {
+    width: 100%;
+}
+
+/* ---- Мобильные ---- */
+
+@media (max-width: 640px) {
+
+    .modal-container,
+    .settings-panel,
+    .task-detail-panel {
+        max-width: 100%;
+    }
+
+    .modal-container {
+        padding: 64px 16px calc(32px + env(safe-area-inset-bottom, 0px));
+        gap: 14px;
+    }
+
+    .settings-header {
+        padding: 18px 16px;
+    }
+
+    .settings-content {
+        padding: 18px 16px calc(18px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .task-detail-panel {
+        padding: 20px 16px calc(20px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .modal-close-tasks.shown {
+        right: 16px;
+    }
 }
